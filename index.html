@@ -4130,6 +4130,11 @@ function renderAutoDetail(safeKey) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, mindmap).then(function(r) {
         box.innerHTML = r.svg;
+        // 立刻克隆 SVG 剥掉 mermaid 内置事件
+        (function(){
+          var s = box.querySelector('svg');
+          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
+        })();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p></div>';
       });
@@ -4170,6 +4175,11 @@ function renderSubject(grade, semester, subjectName) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, result.mindmap).then(function(r) {
         box.innerHTML = r.svg;
+        // 立刻克隆 SVG 剥掉 mermaid 内置事件
+        (function(){
+          var s = box.querySelector('svg');
+          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
+        })();
         attachClicks();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p></div>';
@@ -4228,6 +4238,11 @@ function renderMindmap(grade, semester) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, result.mindmap).then(function(r) {
         box.innerHTML = r.svg;
+        // 立刻克隆 SVG 剥掉 mermaid 内置事件
+        (function(){
+          var s = box.querySelector('svg');
+          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
+        })();
         attachClicks();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p><pre style="display:block;max-height:300px;overflow:auto;background:#222;color:#0f0;padding:10px;margin-top:10px;border-radius:4px;font-size:11px;white-space:pre-wrap;">' + result.mindmap + '</pre></div>';
@@ -4259,6 +4274,11 @@ function renderDetail(key) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, mindmap).then(function(r) {
         box.innerHTML = r.svg;
+        // 立刻克隆 SVG 剥掉 mermaid 内置事件
+        (function(){
+          var s = box.querySelector('svg');
+          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
+        })();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p><pre style="display:block;max-height:300px;overflow:auto;background:#222;color:#0f0;padding:10px;margin-top:10px;border-radius:4px;font-size:11px;white-space:pre-wrap;">' + mindmap + '</pre></div>';
       });
