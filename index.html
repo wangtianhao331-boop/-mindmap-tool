@@ -4285,6 +4285,17 @@ function attachClicks() {
   }
   safeToOrigGlobal = map;
   // 不遍历 SVG、不设属性、不改样式
+  // 等 mermaid 自己的 JS 跑完后，克隆 SVG 剥掉所有事件（防止文字被悬停删除）
+  setTimeout(stripMermaidEvents, 200);
+}
+
+// 克隆 SVG 以移除 mermaid 绑定的悬停事件（这些事件会删除文字）
+function stripMermaidEvents() {
+  var box = document.getElementById('mindmapBox');
+  var svg = box && box.querySelector('svg');
+  if (!svg) return;
+  var clone = svg.cloneNode(true);
+  svg.parentNode.replaceChild(clone, svg);
 }
 
 // 辅助：从被点元素提取可匹配的文字
