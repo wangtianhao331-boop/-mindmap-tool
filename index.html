@@ -2056,7 +2056,8 @@ body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 .main-wrap { max-width: 1400px; margin: 0 auto; padding: 20px; position: relative; }
-.mindmap-box { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 20px; min-height: 500px; overflow: auto; }
+.mindmap-box { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 20px; min-height: 500px; overflow: auto; position: relative; }
+.svg-shield { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; cursor: pointer; }
 .float-back { position: absolute; top: 30px; left: 30px; z-index: 10; padding: 8px 16px; font-size: 14px; border: 1px solid #667eea; background: #fff; color: #667eea; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s; }
 .float-back:hover { background: #667eea; color: #fff; }
 body.dark .float-back { background: #2a2a4a; border-color: #8b7cf7; color: #8b7cf7; }
@@ -4132,11 +4133,7 @@ function renderAutoDetail(safeKey) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, mindmap).then(function(r) {
         box.innerHTML = r.svg;
-        // 立刻克隆 SVG 剥掉 mermaid 内置事件
-        (function(){
-          var s = box.querySelector('svg');
-          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
-        })();
+        addShield();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p></div>';
       });
@@ -4177,11 +4174,7 @@ function renderSubject(grade, semester, subjectName) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, result.mindmap).then(function(r) {
         box.innerHTML = r.svg;
-        // 立刻克隆 SVG 剥掉 mermaid 内置事件
-        (function(){
-          var s = box.querySelector('svg');
-          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
-        })();
+        addShield();
         attachClicks();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p></div>';
@@ -4240,11 +4233,7 @@ function renderMindmap(grade, semester) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, result.mindmap).then(function(r) {
         box.innerHTML = r.svg;
-        // 立刻克隆 SVG 剥掉 mermaid 内置事件
-        (function(){
-          var s = box.querySelector('svg');
-          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
-        })();
+        addShield();
         attachClicks();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p><pre style="display:block;max-height:300px;overflow:auto;background:#222;color:#0f0;padding:10px;margin-top:10px;border-radius:4px;font-size:11px;white-space:pre-wrap;">' + result.mindmap + '</pre></div>';
@@ -4276,11 +4265,7 @@ function renderDetail(key) {
       var chartId = 'mc' + (++renderCounter);
       mermaid.render(chartId, mindmap).then(function(r) {
         box.innerHTML = r.svg;
-        // 立刻克隆 SVG 剥掉 mermaid 内置事件
-        (function(){
-          var s = box.querySelector('svg');
-          if (s) { var c = s.cloneNode(true); s.parentNode.replaceChild(c, s); }
-        })();
+        addShield();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p><pre style="display:block;max-height:300px;overflow:auto;background:#222;color:#0f0;padding:10px;margin-top:10px;border-radius:4px;font-size:11px;white-space:pre-wrap;">' + mindmap + '</pre></div>';
       });
@@ -4290,7 +4275,7 @@ function renderDetail(key) {
   }, 100);
 }
 
-// 只建映射，不碰 SVG 元素（避免跟 mermaid 内部特效冲突）
+// 只建映射，不碰 SVG 元素
 var safeToOrigGlobal = {};
 function attachClicks() {
   var box = document.getElementById('mindmapBox');
@@ -4306,18 +4291,40 @@ function attachClicks() {
     map[s(detailKeys[i])] = detailKeys[i];
   }
   safeToOrigGlobal = map;
-  // 不遍历 SVG、不设属性、不改样式
-  // 等 mermaid 自己的 JS 跑完后，克隆 SVG 剥掉所有事件（防止文字被悬停删除）
-  setTimeout(stripMermaidEvents, 200);
 }
 
-// 克隆 SVG 以移除 mermaid 绑定的悬停事件（这些事件会删除文字）
-function stripMermaidEvents() {
+// 在 SVG 上方加透明护盾，拦截所有鼠标事件，防止 mermaid 悬停删文字
+function addShield() {
   var box = document.getElementById('mindmapBox');
-  var svg = box && box.querySelector('svg');
-  if (!svg) return;
-  var clone = svg.cloneNode(true);
-  svg.parentNode.replaceChild(clone, svg);
+  // 先移除旧的
+  var old = document.getElementById('svgShield');
+  if (old) old.remove();
+  // 创建新护盾
+  var shield = document.createElement('div');
+  shield.id = 'svgShield';
+  shield.className = 'svg-shield';
+  shield.title = '点击文字可进入下级';
+  box.appendChild(shield);
+
+  // 护盾上的点击：临时关盾 → 看下面是什么 → 导航 → 开盾
+  shield.addEventListener('click', function(e) {
+    shield.style.display = 'none';
+    var target = document.elementFromPoint(e.clientX, e.clientY);
+    shield.style.display = 'block';
+    if (!target) return;
+
+    var key = findClickableText(target, box);
+    if (key) {
+      e.stopPropagation();
+      if (currentView.subject) {
+        var origKey = safeToOrigGlobal[key];
+        if (origKey) { renderDetail(origKey); }
+        else { renderAutoDetail(key); }
+      } else {
+        renderSubject(currentView.grade, currentView.semester, key);
+      }
+    }
+  });
 }
 
 // 辅助：从被点元素提取可匹配的文字
