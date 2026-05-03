@@ -2062,10 +2062,12 @@ body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f
 body.dark .float-back { background: #2a2a4a; border-color: #8b7cf7; color: #8b7cf7; }
 body.dark .float-back:hover { background: #8b7cf7; color: #fff; }
 .mindmap-box svg { max-width: 100%; height: auto; }
-/* 可点击节点 + 防止 mermaid 悬停时文字消失 */
+/* 可点击节点 + 彻底禁用 mermaid 的悬停动画 */
 .mindmap-box [data-detail-key] { cursor: pointer; }
-.mindmap-box svg *:hover { opacity: 1 !important; visibility: visible !important; }
-.mindmap-box svg foreignObject *:hover { opacity: 1 !important; visibility: visible !important; }
+.mindmap-box svg *,
+.mindmap-box svg *:hover { animation: none !important; transition: none !important; opacity: 1 !important; visibility: visible !important; }
+.mindmap-box svg *::before,
+.mindmap-box svg *::after { animation: none !important; transition: none !important; }
 .empty-state { text-align: center; padding: 80px 20px; color: #999; }
 .empty-state .icon { font-size: 64px; margin-bottom: 16px; }
 .empty-state h3 { font-size: 18px; color: #666; margin-bottom: 8px; }
