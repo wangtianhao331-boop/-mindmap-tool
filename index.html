@@ -4265,14 +4265,13 @@ function renderDetail(key) {
   }, 100);
 }
 
-// 给知识点文字加点击能力（不改颜色，避免和 mermaid 悬停特效冲突）
+// 只建映射，不碰 SVG 元素（避免跟 mermaid 内部特效冲突）
 var safeToOrigGlobal = {};
 function attachClicks() {
   var box = document.getElementById('mindmapBox');
   var svg = box.querySelector('svg');
   if (!svg) return;
 
-  // 建映射：safe(原始) → 原始（供点击时查找手写 DETAIL）
   function s(text) {
     return text.replace(/\(/g, "【").replace(/\)/g, "】").replace(/\[/g, "［").replace(/\]/g, "］").replace(/\{/g, "｛").replace(/\}/g, "｝").replace(/</g, "＜").replace(/>/g, "＞");
   }
@@ -4282,27 +4281,23 @@ function attachClicks() {
     map[s(detailKeys[i])] = detailKeys[i];
   }
   safeToOrigGlobal = map;
+  // 不遍历 SVG、不设属性、不改样式
+}
 
-  // 遍历 SVG，给可点击元素加标记 + 指针样式
-  var allNodes = svg.querySelectorAll('*');
-  for (var j = 0; j < allNodes.length; j++) {
-    var el = allNodes[j];
-    if (el.children && el.children.length > 0) continue;
+// 辅助：从被点元素提取可匹配的文字
+function findClickableText(el, box) {
+  while (el && el !== box) {
     var txt = (el.textContent || '').trim();
-    if (!txt) continue;
-    if (window._allPointsMap && window._allPointsMap[txt]) {
-      // 不直接改 fill/color，避免跟 mermaid 自带悬停特效冲突导致文字消失
-      // 只设光标和点击标记，颜色通过 CSS 来管
-      el.setAttribute('data-detail-key', txt);
-      el.style.cursor = 'pointer';
-      // 标记父节点，方便事件冒泡
-      var parent = el.parentElement;
-      if (parent && !parent.getAttribute('data-detail-key')) {
-        parent.setAttribute('data-detail-key', txt);
-        parent.style.cursor = 'pointer';
-      }
+    // 尝试直接匹配
+    if (txt && window._allPointsMap && window._allPointsMap[txt]) return txt;
+    // 对于 foreignObject 内的 HTML 元素，试试 innerText
+    if (el.innerText) {
+      var itxt = el.innerText.trim();
+      if (itxt && itxt !== txt && window._allPointsMap && window._allPointsMap[itxt]) return itxt;
     }
+    el = el.parentElement || el.parentNode;
   }
+  return null;
 }
 
 // 事件代理：在 mindmapBox 上统一监听点击（三层导航）
@@ -4310,22 +4305,32 @@ document.addEventListener('DOMContentLoaded', function() {
   var box = document.getElementById('mindmapBox');
   if (!box) return;
   box.addEventListener('click', function(e) {
+    // 优先：从被点元素的文字直接匹配（不依赖 data-detail-key）
+    var key = findClickableText(e.target, box);
+    if (key) {
+      e.stopPropagation();
+      if (currentView.subject) {
+        var origKey = safeToOrigGlobal[key];
+        if (origKey) { renderDetail(origKey); }
+        else { renderAutoDetail(key); }
+      } else {
+        renderSubject(currentView.grade, currentView.semester, key);
+      }
+      return;
+    }
+
+    // 兜底：遍历查找 data-detail-key 属性（兼容旧渲染）
     var el = e.target;
     while (el && el !== box) {
-      var key = el.getAttribute && el.getAttribute('data-detail-key');
-      if (key) {
+      var dk = el.getAttribute && el.getAttribute('data-detail-key');
+      if (dk) {
         e.stopPropagation();
         if (currentView.subject) {
-          // 第二层：点的是知识点 → 进入第三层（详细内容）
-          var origKey = safeToOrigGlobal[key];
-          if (origKey) {
-            renderDetail(origKey);
-          } else {
-            renderAutoDetail(key);
-          }
+          var origKey2 = safeToOrigGlobal[dk];
+          if (origKey2) { renderDetail(origKey2); }
+          else { renderAutoDetail(dk); }
         } else {
-          // 第一层：点的是学科 → 进入第二层（该学科的知识点）
-          renderSubject(currentView.grade, currentView.semester, key);
+          renderSubject(currentView.grade, currentView.semester, dk);
         }
         return;
       }
