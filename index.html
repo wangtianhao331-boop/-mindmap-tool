@@ -2062,6 +2062,8 @@ body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f
 body.dark .float-back { background: #2a2a4a; border-color: #8b7cf7; color: #8b7cf7; }
 body.dark .float-back:hover { background: #8b7cf7; color: #fff; }
 .mindmap-box svg { max-width: 100%; height: auto; }
+/* 可点击节点——只改光标，不改颜色，避免跟 mermaid 悬停特效冲突 */
+.mindmap-box [data-detail-key] { cursor: pointer; }
 .empty-state { text-align: center; padding: 80px 20px; color: #999; }
 .empty-state .icon { font-size: 64px; margin-bottom: 16px; }
 .empty-state h3 { font-size: 18px; color: #666; margin-bottom: 8px; }
@@ -4263,7 +4265,7 @@ function renderDetail(key) {
   }, 100);
 }
 
-// 给知识点文字标蓝加下划线（所有知识点都能点）
+// 给知识点文字加点击能力（不改颜色，避免和 mermaid 悬停特效冲突）
 var safeToOrigGlobal = {};
 function attachClicks() {
   var box = document.getElementById('mindmapBox');
@@ -4281,31 +4283,23 @@ function attachClicks() {
   }
   safeToOrigGlobal = map;
 
-  // 遍历 SVG 中所有文本节点，给所有知识点标蓝
+  // 遍历 SVG，给可点击元素加标记 + 指针样式
   var allNodes = svg.querySelectorAll('*');
-  var foundCount = 0;
   for (var j = 0; j < allNodes.length; j++) {
     var el = allNodes[j];
     if (el.children && el.children.length > 0) continue;
     var txt = (el.textContent || '').trim();
     if (!txt) continue;
-    // 检查是否在知识点列表中（所有知识点都能点）
     if (window._allPointsMap && window._allPointsMap[txt]) {
-      foundCount++;
+      // 不直接改 fill/color，避免跟 mermaid 自带悬停特效冲突导致文字消失
+      // 只设光标和点击标记，颜色通过 CSS 来管
       el.setAttribute('data-detail-key', txt);
-      if (el.tagName === 'text' || el.tagName === 'tspan') {
-        el.style.fill = '#2563eb';
-        el.style.textDecoration = 'underline';
-        el.style.cursor = 'pointer';
-      } else {
-        el.style.color = '#2563eb';
-        el.style.textDecoration = 'underline';
-        el.style.cursor = 'pointer';
-      }
-      // 标记父节点，方便点击事件冒泡捕获
+      el.style.cursor = 'pointer';
+      // 标记父节点，方便事件冒泡
       var parent = el.parentElement;
       if (parent && !parent.getAttribute('data-detail-key')) {
         parent.setAttribute('data-detail-key', txt);
+        parent.style.cursor = 'pointer';
       }
     }
   }
