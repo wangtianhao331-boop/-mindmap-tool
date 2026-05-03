@@ -2062,8 +2062,10 @@ body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f
 body.dark .float-back { background: #2a2a4a; border-color: #8b7cf7; color: #8b7cf7; }
 body.dark .float-back:hover { background: #8b7cf7; color: #fff; }
 .mindmap-box svg { max-width: 100%; height: auto; }
-/* 可点击节点——只改光标，不改颜色，避免跟 mermaid 悬停特效冲突 */
+/* 可点击节点 + 防止 mermaid 悬停时文字消失 */
 .mindmap-box [data-detail-key] { cursor: pointer; }
+.mindmap-box svg *:hover { opacity: 1 !important; visibility: visible !important; }
+.mindmap-box svg foreignObject *:hover { opacity: 1 !important; visibility: visible !important; }
 .empty-state { text-align: center; padding: 80px 20px; color: #999; }
 .empty-state .icon { font-size: 64px; margin-bottom: 16px; }
 .empty-state h3 { font-size: 18px; color: #666; margin-bottom: 8px; }
@@ -2239,6 +2241,7 @@ if (typeof mermaid !== 'undefined') {
   mermaid.initialize({
     startOnLoad: false,
     theme: 'default',
+    securityLevel: 'loose',
     themeVariables: {
       fontFamily: '"Microsoft YaHei", sans-serif',
       fontSize: '14px'
