@@ -4859,7 +4859,8 @@ function lookupPointInfo(pointName) {
       for (var pi = 0; pi < points.length; pi++) {
         var p = points[pi];
         var short = p.length > 16 ? safe(p.slice(0, 16) + "…") : safe(p);
-        if (p === pointName || safe(p) === pointName || short === pointName) {
+        var halfP = p.replace(/（/g, '(').replace(/）/g, ')');
+	        if (p === pointName || safe(p) === pointName || short === pointName || halfP === pointName || safe(halfP) === pointName) {
           return { point: p, module: moduleName, subject: subj };
         }
       }
@@ -5078,7 +5079,8 @@ function gradeQuiz() {
 
   var allDone = true;
   for (var qi = 0; qi < questions.length; qi++) {
-    if (!userAnswers[qi] && userAnswers[qi] !== '') { allDone = false; break; }
+    var ua = userAnswers[qi];
+      if (ua === undefined || ua === null || (typeof ua === 'string' && ua.trim() === '')) { allDone = false; break; }
   }
   if (!allDone) {
     alert('请先回答所有题目再交卷！');
@@ -5101,10 +5103,7 @@ function gradeQuiz() {
       var compact = userAns.replace(/\s+/g, '');
       var compactAns = q.answer.replace(/\s+/g, '');
       correct = (compact === compactAns) || (userAns.indexOf(q.answer) >= 0) || (compact.indexOf(compactAns) >= 0);
-      // 差一个字也算对
-      if (!correct && Math.abs(userAns.length - q.answer.length) <= 2) {
-        correct = true;
-      }
+      // 部分匹配也算对（用户答案包含正确答案的关键字）
     }
 
     if (correct) score++;
