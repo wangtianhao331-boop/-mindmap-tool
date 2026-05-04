@@ -4,10 +4,11 @@ var https = require('https');
 
 var API_KEY = 'sk-e794fda655fb4b84bed114eec97ccc16';
 var BATCH_SIZE = 5;
-var BATCHES_TO_DO = 50; // 跑 50 批 = 250 个知识点（覆盖全部233个）
+var BATCHES_TO_DO = 50;
 
-// 读取 HTML 中已有的 DETAIL keys
 var html = fs.readFileSync('index.html', 'utf-8');
+
+// 读取 DETAIL keys
 var dStart = html.indexOf('const DETAIL = {');
 var depth = 0; var dEnd = -1; var found = false;
 for (var i = dStart; i < html.length; i++) {
@@ -24,12 +25,16 @@ while ((em = eRe.exec(detailCode)) !== null) {
 }
 console.log('DETAIL 条目:', detailKeys.length);
 
-// 检查已有的 LEARNING
+// 读取已有的 LEARNING keys（只要有实际数据 { 的就算）
 var lStart = html.indexOf('var LEARNING = {');
 var existingLearning = {};
+var existingText = {}; // 保存原始文本
 if (lStart >= 0) {
   var lEnd = html.indexOf('function showAIGuide()');
   var lCode = html.substring(lStart, lEnd);
+  // 提取每个完整的条目（支持多行嵌套）
+  var inner = lCode.substring(lCode.indexOf('{\n') + 2);
+  // 简单方式：用 key 匹配
   var lRe = /"([^"]+)":\s*\{/g;
   var lm;
   while ((lm = lRe.exec(lCode)) !== null) {
@@ -38,7 +43,7 @@ if (lStart >= 0) {
 }
 console.log('已有 LEARNING:', Object.keys(existingLearning).length);
 
-// 找出还没生成 LEARNING 的 key
+// 找出还没生成的
 var remaining = [];
 for (var r = 0; r < detailKeys.length; r++) {
   if (!existingLearning[detailKeys[r]]) {
@@ -104,7 +109,6 @@ async function main() {
 
   var todoKeys = remaining.slice(0, BATCHES_TO_DO * BATCH_SIZE);
 
-  // 分批处理
   for (var b = 0; b < todoKeys.length; b += BATCH_SIZE) {
     var batch = todoKeys.slice(b, b + BATCH_SIZE);
     var bn = Math.floor(b / BATCH_SIZE) + 1;
@@ -118,15 +122,11 @@ async function main() {
       var added = 0;
       for (var k = 0; k < keys.length; k++) {
         if (result[keys[k]] && result[keys[k]].summary) {
-          existingLearning[keys[k]] = result[keys[k]];
+          appendEntry(keys[k], result[keys[k]]);
           added++;
         }
       }
       console.log('本批成功:', added, '条');
-
-      // 增量写入 HTML
-      updateHTML();
-      console.log('已写入 HTML');
     } catch(e) {
       console.log('本批失败:', e.message);
     }
@@ -138,30 +138,23 @@ async function main() {
   }
 
   console.log('\n=== 完成 ===');
-  console.log('LEARNING 总计:', Object.keys(existingLearning).length);
 }
 
-function updateHTML() {
+// 增量追加，不覆盖已有数据
+function appendEntry(key, guide) {
   var h = fs.readFileSync('index.html', 'utf-8');
-  var lStart = h.indexOf('var LEARNING = {');
-
-  // 构建新的 LEARNING 内容
-  var entries = [];
-  var lk = Object.keys(existingLearning);
-  for (var i = 0; i < lk.length; i++) {
-    var key = lk[i];
-    var guide = existingLearning[key];
-    var safeKey = JSON.stringify(key);
-    var safeGuide = JSON.stringify(guide);
-    entries.push('  ' + safeKey + ': ' + safeGuide);
-  }
-  var newLearning = 'var LEARNING = {\n' + entries.join(',\n') + '\n};';
-
-  // 替换从 var LEARNING = { 到下一个 };
   var lEnd = h.indexOf('function showAIGuide()');
   if (lEnd < 0) { console.log('Cannot find showAIGuide'); return; }
 
-  h = h.substring(0, lStart) + newLearning + '\n\n' + h.substring(lEnd);
+  // 找到 LEARNING 闭括号 };
+  var closeBrace = h.lastIndexOf('\n};', lEnd);
+  if (closeBrace < 0) { console.log('Cannot find LEARNING close'); return; }
+
+  var safeKey = JSON.stringify(key);
+  var safeGuide = JSON.stringify(guide);
+  var newEntry = ',\n  ' + safeKey + ': ' + safeGuide;
+
+  h = h.substring(0, closeBrace) + newEntry + '\n};' + h.substring(closeBrace + 3);
   fs.writeFileSync('index.html', h, 'utf-8');
 }
 
