@@ -2119,6 +2119,8 @@ body.dark footer { color: #666; }
 /* 闯关答题 */
 .btn-quiz { padding: 6px 14px; font-size: 14px; border: 1px solid #f59e0b; background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
 .btn-quiz:hover { background: linear-gradient(135deg, #fde68a, #fcd34d); transform: scale(1.03); }
+.btn-yt { padding: 6px 14px; font-size: 14px; border: 1px solid #cc0000; background: linear-gradient(135deg, #fff0f0, #ffdddd); color: #cc0000; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; text-decoration: none; display: inline-block; margin-left: 6px; }
+.btn-yt:hover { background: linear-gradient(135deg, #ffdddd, #ffbbbb); transform: scale(1.03); }
 .quiz-panel { max-width: 700px; margin: 0 auto; }
 .quiz-title { text-align: center; font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 24px; }
 .quiz-question { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
@@ -2157,6 +2159,8 @@ body.dark footer { color: #666; }
 /* 暗色模式 - 闯关 */
 body.dark .btn-quiz { background: linear-gradient(135deg, #3d2e0a, #5c3d0e); border-color: #b45309; color: #fbbf24; }
 body.dark .btn-quiz:hover { background: linear-gradient(135deg, #5c3d0e, #7c4f12); }
+body.dark .btn-yt { background: linear-gradient(135deg, #3d0a0a, #5c0e0e); border-color: #b91c1c; color: #fca5a5; }
+body.dark .btn-yt:hover { background: linear-gradient(135deg, #5c0e0e, #7c1212); }
 body.dark .quiz-title { color: #e2e8f0; }
 body.dark .quiz-question { background: #1e293b; border-color: #334155; }
 body.dark .quiz-question .q-header { color: #cbd5e1; }
@@ -2218,6 +2222,7 @@ body.dark .btn-back-detail:hover { background: #334155; }
 <div id="breadcrumbBar" class="breadcrumb-bar" style="display:none">
   <span id="breadcrumbPath"></span>
   <button id="quizBtn" class="btn-quiz" style="display:none" title="答题闯关">🎯 开始闯关</button>
+	  <a id="ytBtn" class="btn-yt" target="_blank" style="display:none" title="在 YouTube 上搜索教学视频">📺 视频学习</a>
 </div>
 
 <div class="main-wrap">
@@ -4777,24 +4782,32 @@ function showBreadcrumb(text) {
   var bar = document.getElementById('breadcrumbBar');
   var path = document.getElementById('breadcrumbPath');
   var quizBtn = document.getElementById('quizBtn');
+  var ytBtn = document.getElementById('ytBtn');
   var floatBack = document.getElementById('floatBackBtn');
   var g = currentView.grade;
   var s = currentView.semester;
   var safeText = text.replace(/\(/g, "【").replace(/\)/g, "】");
   if (currentView.subject && currentView.detailKey) {
-    // 第三层：年级 → 学科 → 知识点 → 显示闯关按钮 + 浮动返回按钮
+    // 第三层：年级 → 学科 → 知识点 → 显示闯关按钮 + 视频按钮 + 浮动返回按钮
     path.textContent = g + ' · ' + s + '  →  ' + currentView.subject + '  →  ' + safeText;
     if (!currentView.inQuiz && quizBtn) quizBtn.style.display = 'inline-block';
+    if (!currentView.inQuiz && ytBtn) {
+      var query = encodeURIComponent(currentView.detailKey + ' ' + currentView.subject + ' 教学');
+      ytBtn.href = 'https://www.youtube.com/results?search_query=' + query;
+      ytBtn.style.display = 'inline-block';
+    }
     if (floatBack) floatBack.style.display = 'block';
   } else if (currentView.subject) {
     // 第二层：年级 → 学科 → 显示浮动返回按钮
     path.textContent = g + ' · ' + s + '  →  ' + safeText;
     if (quizBtn) quizBtn.style.display = 'none';
+    if (ytBtn) ytBtn.style.display = 'none';
     if (floatBack) floatBack.style.display = 'block';
   } else {
     // 第一层：不显示返回按钮
     path.textContent = g + ' · ' + s;
     if (quizBtn) quizBtn.style.display = 'none';
+    if (ytBtn) ytBtn.style.display = 'none';
     if (floatBack) floatBack.style.display = 'none';
   }
   bar.style.display = 'flex';
