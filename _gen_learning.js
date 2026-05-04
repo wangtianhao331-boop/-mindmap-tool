@@ -3,8 +3,8 @@ var fs = require('fs');
 var https = require('https');
 
 var API_KEY = 'sk-e794fda655fb4b84bed114eec97ccc16';
-var BATCH_SIZE = 5;
-var BATCHES_TO_DO = 50;
+var BATCH_SIZE = 6;
+var BATCHES_TO_DO = 300;
 
 var html = fs.readFileSync('index.html', 'utf-8');
 
