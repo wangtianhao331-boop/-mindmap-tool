@@ -4688,7 +4688,7 @@ function highlightClickable() {
   }
 
   var isDark = document.body.classList.contains('dark');
-  var HIGHLIGHT = isDark ? '#fbbf24' : '#f59e0b';
+  var HIGHLIGHT = isDark ? '#fef08a' : '#fbbf24';
 
   // 处理 <text> 元素
   var texts = svg.querySelectorAll('text');
@@ -4697,6 +4697,8 @@ function highlightClickable() {
     if (detailSet[txt]) {
       texts[j].setAttribute('fill', HIGHLIGHT);
       texts[j].style.fill = HIGHLIGHT;
+      texts[j].setAttribute('font-weight', 'bold');
+      texts[j].style.fontWeight = 'bold';
     }
   }
 
