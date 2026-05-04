@@ -4960,11 +4960,11 @@ function generateQuestions(key) {
     tag: '选择题'
   });
 
-  // B题：填空题 — 属于哪个学科？
+  // B题：填空题 — 属于哪个模块？
   questions.push({
     type: 'fill',
-    title: '「' + info.point + '」属于 ____ 学科',
-    answer: info.subject,
+    title: '「' + info.point + '」属于 ____ 模块',
+    answer: info.module,
     tag: '填空题'
   });
 
@@ -5046,7 +5046,7 @@ function renderQuizPanel(questions) {
       }
       html += '</div>';
     } else if (q.type === 'fill') {
-      html += '<input class="quiz-input" id="fillInput' + qi + '" placeholder="请输入学科名…" onchange="saveFillAnswer(' + qi + ',this.value)">';
+      html += '<input class="quiz-input" id="fillInput' + qi + '" placeholder="请输入模块名…" onchange="saveFillAnswer(' + qi + ',this.value)">';
     } else if (q.type === 'tf') {
       html += '<div class="quiz-tf-row">';
       html += '<button class="quiz-tf-btn" onclick="selectTF(' + qi + ',\'对\',this)">✅ 对</button>';
@@ -5110,11 +5110,11 @@ function gradeQuiz() {
     if (q.type === 'choice' || q.type === 'tf') {
       correct = userAns === q.answer;
     } else if (q.type === 'fill') {
-      // 宽松匹配：去掉空格后比较，或包含正确答案
-      var compact = userAns.replace(/\s+/g, '');
-      var compactAns = q.answer.replace(/\s+/g, '');
-      correct = (compact === compactAns) || (userAns.indexOf(q.answer) >= 0) || (compact.indexOf(compactAns) >= 0);
-      // 部分匹配也算对（用户答案包含正确答案的关键字）
+      // 宽松匹配：统一括号、去空格后比较，或包含正确答案
+      function norm(s) { return s.replace(/\s+/g, '').replace(/（/g, '(').replace(/）/g, ')'); }
+      var compact = norm(userAns);
+      var compactAns = norm(q.answer);
+      correct = (compact === compactAns) || (compact.indexOf(compactAns) >= 0) || (compactAns.indexOf(compact) >= 0);
     }
 
     if (correct) score++;
