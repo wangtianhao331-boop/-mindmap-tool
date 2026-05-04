@@ -2112,7 +2112,6 @@ body.dark .breadcrumb-bar .btn-back { background: #2a2a4a; border-color: #8b7cf7
 body.dark .breadcrumb-bar .btn-back:hover { background: #8b7cf7; color: #fff; }
 body.dark #breadcrumbPath { color: #aaa; }
 body.dark footer { color: #666; }
-body.dark .mindmap-box svg { filter: invert(0.85) hue-rotate(180deg); }
 @media (max-width: 600px) {
   .controls { flex-direction: column; padding: 12px; }
   .controls select, .controls button { width: 100%; }
@@ -2240,10 +2239,15 @@ body.dark .btn-back-detail:hover { background: #334155; }
 <footer>知识体系基于课程标准整理 · 适合快速回顾知识框架</footer>
 <script>
 var mermaidReady = false;
-if (typeof mermaid !== 'undefined') {
+function initMermaid() {
+  if (typeof mermaid === 'undefined') {
+    console.log('Mermaid 库未加载，将使用备用方案');
+    return;
+  }
+  var isDark = document.body.classList.contains('dark');
   mermaid.initialize({
     startOnLoad: false,
-    theme: 'default',
+    theme: isDark ? 'dark' : 'default',
     securityLevel: 'loose',
     themeVariables: {
       fontFamily: '"Microsoft YaHei", sans-serif',
@@ -2252,9 +2256,8 @@ if (typeof mermaid !== 'undefined') {
     mindmap: { padding: 16, useMaxWidth: true }
   });
   mermaidReady = true;
-} else {
-  console.log('Mermaid 库未加载，将使用备用方案');
 }
+initMermaid();
 
 // ========== 明暗模式切换 ==========
 (function() {
@@ -2268,6 +2271,8 @@ if (typeof mermaid !== 'undefined') {
       var isDark = document.body.classList.contains('dark');
       btn.textContent = isDark ? '☀️' : '🌙';
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      initMermaid();
+      rerenderCurrentView();
     });
   }
 })();
@@ -4688,7 +4693,7 @@ function highlightClickable() {
   }
 
   var isDark = document.body.classList.contains('dark');
-  var HIGHLIGHT = isDark ? '#f472b6' : '#db2777';
+  var HIGHLIGHT = isDark ? '#60a5fa' : '#2563eb';
 
   // 处理 <text> 元素
   var texts = svg.querySelectorAll('text');
@@ -4714,6 +4719,18 @@ function highlightClickable() {
         spans[si].style.fontWeight = 'bold';
       }
     }
+  }
+}
+
+// 暗色模式切换后重新渲染当前视图
+function rerenderCurrentView() {
+  if (currentView.inQuiz) return;
+  if (currentView.detailKey) {
+    renderDetail(currentView.detailKey);
+  } else if (currentView.subject) {
+    renderSubject(currentView.grade, currentView.semester, currentView.subject);
+  } else {
+    renderMindmap(currentView.grade, currentView.semester);
   }
 }
 
