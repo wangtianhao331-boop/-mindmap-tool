@@ -4,7 +4,7 @@ var https = require('https');
 
 var API_KEY = 'sk-e794fda655fb4b84bed114eec97ccc16';
 var BATCH_SIZE = 5;
-var BATCHES_TO_DO = 4; // 先跑 4 批 = 20 个知识点
+var BATCHES_TO_DO = 50; // 跑 50 批 = 250 个知识点（覆盖全部233个）
 
 // 读取 HTML 中已有的 DETAIL keys
 var html = fs.readFileSync('index.html', 'utf-8');
