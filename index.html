@@ -4808,6 +4808,9 @@ function showBreadcrumb(text) {
       aiLearnBtn.style.display = "inline-block";
     }
     if (floatBack) floatBack.style.display = 'block';
+    // 提示：先 AI 讲解，再闯关
+    var tipBox = document.querySelector('.tip-box');
+    if (tipBox) tipBox.innerHTML = '<strong>💡 建议：</strong>先点 <span style="color:#6d28d9;font-weight:700">🤖 AI 讲解</span> 看详细讲解，学会了再来 <span style="color:#f59e0b;font-weight:700">🎯 开始闯关</span> 挑战自己！';
   } else if (currentView.subject) {
     // 第二层：年级 → 学科 → 显示浮动返回按钮
     path.textContent = g + ' · ' + s + '  →  ' + safeText;
@@ -4827,6 +4830,8 @@ function showBreadcrumb(text) {
 function hideBreadcrumb() {
   var bar = document.getElementById('breadcrumbBar');
   bar.style.display = 'none';
+  var tipBox = document.querySelector('.tip-box');
+  if (tipBox) tipBox.innerHTML = '<strong>💡 使用建议：</strong>选好年级和学期，点击生成。一张图涵盖所有学科的核心知识框架，适合预习总览、考前复习、快速回顾一学期内容。';
   var quizBtn = document.getElementById('quizBtn');
   if (quizBtn) quizBtn.style.display = 'none';
   var floatBack = document.getElementById('floatBackBtn');
