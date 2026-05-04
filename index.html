@@ -4498,6 +4498,7 @@ function renderSubject(grade, semester, subjectName) {
         box.innerHTML = r.svg;
         addShield();
         attachClicks();
+        highlightClickable();
       }).catch(function(err) {
         box.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>渲染出错</h3><p>' + (err.message || String(err)) + '</p></div>';
       });
@@ -4663,6 +4664,55 @@ function findClickableText(el, box) {
     el = el.parentElement || el.parentNode;
   }
   return null;
+}
+
+// 高亮有 DETAIL 的知识点：在渲染后的 SVG 中，把可点击的知识点文字改成橙色
+function highlightClickable() {
+  var box = document.getElementById('mindmapBox');
+  var svg = box.querySelector('svg');
+  if (!svg) return;
+
+  function s(text) {
+    return text.replace(/\(/g, "【").replace(/\)/g, "】").replace(/\[/g, "［").replace(/\]/g, "］").replace(/\{/g, "｛").replace(/\}/g, "｝").replace(/</g, "＜").replace(/>/g, "＞");
+  }
+
+  // 把 DETAIL 的 key 全部 safe 化，也包含缩短版（16字+…）
+  var detailSet = {};
+  var detailKeys = Object.keys(DETAIL);
+  for (var i = 0; i < detailKeys.length; i++) {
+    var safeKey = s(detailKeys[i]);
+    detailSet[safeKey] = true;
+    if (safeKey.length > 16) {
+      detailSet[safeKey.slice(0, 16) + "…"] = true;
+    }
+  }
+
+  var isDark = document.body.classList.contains('dark');
+  var HIGHLIGHT = isDark ? '#f0a040' : '#e67e22';
+
+  // 处理 <text> 元素
+  var texts = svg.querySelectorAll('text');
+  for (var j = 0; j < texts.length; j++) {
+    var txt = (texts[j].textContent || '').trim();
+    if (detailSet[txt]) {
+      texts[j].setAttribute('fill', HIGHLIGHT);
+      texts[j].style.fill = HIGHLIGHT;
+    }
+  }
+
+  // 处理 foreignObject 里的文字（mermaid 9.x 的渲染方式）
+  var fos = svg.querySelectorAll('foreignObject');
+  for (var k = 0; k < fos.length; k++) {
+    var fo = fos[k];
+    var foText = (fo.textContent || '').trim();
+    if (detailSet[foText]) {
+      var spans = fo.querySelectorAll('span, div, p');
+      for (var si = 0; si < spans.length; si++) {
+        spans[si].style.color = HIGHLIGHT;
+        spans[si].style.fontWeight = 'bold';
+      }
+    }
+  }
 }
 
 // 事件代理：在 mindmapBox 上统一监听点击（三层导航）
