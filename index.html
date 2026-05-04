@@ -2119,8 +2119,8 @@ body.dark footer { color: #666; }
 /* 闯关答题 */
 .btn-quiz { padding: 6px 14px; font-size: 14px; border: 1px solid #f59e0b; background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
 .btn-quiz:hover { background: linear-gradient(135deg, #fde68a, #fcd34d); transform: scale(1.03); }
-.btn-bili { padding: 6px 14px; font-size: 14px; border: 1px solid #fb7299; background: linear-gradient(135deg, #fff0f4, #ffe0ea); color: #d94a6e; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; text-decoration: none; display: inline-block; margin-left: 6px; }
-.btn-bili:hover { background: linear-gradient(135deg, #ffe0ea, #ffcad8); transform: scale(1.03); }
+.btn-ai { padding: 6px 14px; font-size: 14px; border: 1px solid #7c3aed; background: linear-gradient(135deg, #f5f0ff, #ede0ff); color: #6d28d9; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; margin-left: 6px; }
+.btn-ai:hover { background: linear-gradient(135deg, #ede0ff, #ddd0ff); transform: scale(1.03); }
 .quiz-panel { max-width: 700px; margin: 0 auto; }
 .quiz-title { text-align: center; font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 24px; }
 .quiz-question { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
@@ -2159,8 +2159,8 @@ body.dark footer { color: #666; }
 /* 暗色模式 - 闯关 */
 body.dark .btn-quiz { background: linear-gradient(135deg, #3d2e0a, #5c3d0e); border-color: #b45309; color: #fbbf24; }
 body.dark .btn-quiz:hover { background: linear-gradient(135deg, #5c3d0e, #7c4f12); }
-body.dark .btn-bili { background: linear-gradient(135deg, #3d0a16, #5c0e24); border-color: #d94a6e; color: #fca5c4; }
-body.dark .btn-bili:hover { background: linear-gradient(135deg, #5c0e24, #7c1236); }
+body.dark .btn-ai { background: linear-gradient(135deg, #1a0a3d, #2e105c); border-color: #7c3aed; color: #c4b5fd; }
+body.dark .btn-ai:hover { background: linear-gradient(135deg, #2e105c, #42187c); }
 body.dark .quiz-title { color: #e2e8f0; }
 body.dark .quiz-question { background: #1e293b; border-color: #334155; }
 body.dark .quiz-question .q-header { color: #cbd5e1; }
@@ -2178,6 +2178,19 @@ body.dark .btn-retry { background: #1e293b; border-color: #8b7cf7; color: #8b7cf
 body.dark .btn-retry:hover { background: #8b7cf7; color: #fff; }
 body.dark .btn-back-detail { background: #1e293b; border-color: #334155; color: #94a3b8; }
 body.dark .btn-back-detail:hover { background: #334155; }
+/* AI 讲解面板 */
+.ai-guide-panel { max-width: 750px; margin: 0 auto; padding: 20px; }
+.ai-guide-title { font-size: 22px; font-weight: 700; color: #6d28d9; margin-bottom: 20px; }
+.ai-guide-section { margin-bottom: 18px; }
+.ai-guide-section h3 { font-size: 16px; margin-bottom: 8px; color: #333; }
+.ai-guide-section p { line-height: 1.7; color: #444; }
+.ai-guide-section ol, .ai-guide-section ul { padding-left: 20px; }
+.ai-guide-section li { line-height: 1.7; margin-bottom: 4px; color: #444; }
+.ai-example { background: #f5f0ff; border-left: 3px solid #7c3aed; padding: 8px 12px; margin-bottom: 6px; border-radius: 4px; color: #444; }
+body.dark .ai-guide-title { color: #c4b5fd; }
+body.dark .ai-guide-section h3 { color: #ccc; }
+body.dark .ai-guide-section p, body.dark .ai-guide-section li { color: #aaa; }
+body.dark .ai-example { background: #2a1a3d; border-left-color: #7c3aed; color: #aaa; }
 </style>
 </head>
 <body>
@@ -2222,7 +2235,7 @@ body.dark .btn-back-detail:hover { background: #334155; }
 <div id="breadcrumbBar" class="breadcrumb-bar" style="display:none">
   <span id="breadcrumbPath"></span>
   <button id="quizBtn" class="btn-quiz" style="display:none" title="答题闯关">🎯 开始闯关</button>
-	  <a id="biliBtn" class="btn-bili" target="_blank" style="display:none" title="在 B 站搜索教学视频">📺 视频学习</a>
+	  <button id="aiLearnBtn" class="btn-ai" style="display:none" title="AI 详细讲解这个知识点" onclick="showAIGuide()">🤖 AI 讲解</button>
 </div>
 
 <div class="main-wrap">
@@ -4782,7 +4795,7 @@ function showBreadcrumb(text) {
   var bar = document.getElementById('breadcrumbBar');
   var path = document.getElementById('breadcrumbPath');
   var quizBtn = document.getElementById('quizBtn');
-  var biliBtn = document.getElementById('biliBtn');
+  var aiLearnBtn = document.getElementById('aiLearnBtn');
   var floatBack = document.getElementById('floatBackBtn');
   var g = currentView.grade;
   var s = currentView.semester;
@@ -4791,23 +4804,21 @@ function showBreadcrumb(text) {
     // 第三层：年级 → 学科 → 知识点 → 显示闯关按钮 + 视频按钮 + 浮动返回按钮
     path.textContent = g + ' · ' + s + '  →  ' + currentView.subject + '  →  ' + safeText;
     if (!currentView.inQuiz && quizBtn) quizBtn.style.display = 'inline-block';
-    if (!currentView.inQuiz && biliBtn) {
-      var query = encodeURIComponent(currentView.detailKey + ' ' + currentView.subject + ' 教学');
-      biliBtn.href = 'https://search.bilibili.com/all?keyword=' + query;
-      biliBtn.style.display = 'inline-block';
+    if (!currentView.inQuiz && aiLearnBtn) {
+      aiLearnBtn.style.display = "inline-block";
     }
     if (floatBack) floatBack.style.display = 'block';
   } else if (currentView.subject) {
     // 第二层：年级 → 学科 → 显示浮动返回按钮
     path.textContent = g + ' · ' + s + '  →  ' + safeText;
     if (quizBtn) quizBtn.style.display = 'none';
-    if (biliBtn) biliBtn.style.display = 'none';
+    if (aiLearnBtn) aiLearnBtn.style.display = 'none';
     if (floatBack) floatBack.style.display = 'block';
   } else {
     // 第一层：不显示返回按钮
     path.textContent = g + ' · ' + s;
     if (quizBtn) quizBtn.style.display = 'none';
-    if (biliBtn) biliBtn.style.display = 'none';
+    if (aiLearnBtn) aiLearnBtn.style.display = 'none';
     if (floatBack) floatBack.style.display = 'none';
   }
   bar.style.display = 'flex';
@@ -5147,6 +5158,87 @@ function showQuizResult(score, total, results) {
   html += '</div></div>';
 
   box.innerHTML = html;
+}
+
+// ===== AI 讲解 =====
+var LEARNING = {
+  "1": {"summary":"方程是含有未知数的等式，表示两个表达式相等。学习方程的意义在于理解如何用数学语言描述实际问题，并找到未知数的值。","steps":["理解等式的概念：等号两边相等。","认识未知数：用字母（如x）表示未知量。","掌握方程的定义：含有未知数的等式。","练习判断：区分等式和方程。","尝试列方程：将实际问题转化为方程。"],"examples":["判断：3+2=5是等式，但不是方程；x+2=5是方程。","列方程：小明有x本书，借出3本后剩5本，则x-3=5。"],"commonMistakes":["误认为所有等式都是方程。","忽略未知数必须出现在等式中。"]},
+  "2": {"summary":"一元一次方程是含有一个未知数且未知数次数为1的方程。解法核心是通过移项、合并同类项、系数化为1求未知数。","steps":["去分母：方程两边乘以分母的最小公倍数。","去括号：用分配律去掉括号。","移项：将含未知数的项移到左边，常数项移到右边，注意变号。","合并同类项：简化方程。","系数化为1：方程两边除以未知数的系数。"],"examples":["解2x+3=7：移项得2x=4，系数化1得x=2。","解3(x-2)=9：去括号得3x-6=9，移项得3x=15，x=5。"],"commonMistakes":["移项忘记变号。","去分母时漏乘常数项。","合并同类项时计算错误。"]},
+  "3": {"summary":"三角形按角分为锐角三角形、直角三角形、钝角三角形；按边分为不等边三角形、等腰三角形、等边三角形。理解分类有助于研究三角形性质。","steps":["按角分类：三个角都小于90°为锐角三角形；一个角等于90°为直角三角形；一个角大于90°为钝角三角形。","按边分类：三边不等为不等边三角形；至少两边相等为等腰三角形；三边相等为等边三角形。","记忆特殊性质：等腰三角形两底角相等；等边三角形三个角都是60°。","练习分类：给三角形判断类型。","应用：利用分类解决几何问题。"],"examples":["三角形内角分别为30°、60°、90°，是直角三角形。","三角形边长分别为5、5、8，是等腰三角形。"],"commonMistakes":["误认为等腰三角形一定是等边三角形。","钝角三角形中只有一个钝角，但误以为有两个。"]},
+  "4": {"summary":"化合反应是两种或两种以上物质生成一种新物质的化学反应，通式A+B→AB。学习化合反应有助于理解物质组成和化学变化。","steps":["理解定义：多变一。","掌握常见化合反应：如碳+氧气→二氧化碳。","注意条件：点燃、加热等。","练习书写化学方程式并配平。","区分化合反应与其他反应类型。"],"examples":["2H2+O2→2H2O（氢气燃烧）。","CaO+H2O→Ca(OH)2（生石灰与水反应）。"],"commonMistakes":["误将分解反应当作化合反应。","忽略反应条件。","配平错误。"]},
+  "5": {"summary":"牛顿三大定律是经典力学基础：第一定律（惯性定律）说明物体保持静止或匀速直线运动；第二定律F=ma；第三定律作用力与反作用力等大反向。","steps":["理解第一定律：物体不受力时保持原有运动状态。","掌握第二定律：加速度与合外力成正比，与质量成反比。","应用第三定律：作用力和反作用力同时存在，大小相等方向相反。","结合实例分析：如推车、火箭发射。","练习解题：用F=ma计算。"],"examples":["第一定律：匀速行驶的汽车突然刹车，���客前倾。","第二定律：质量2kg物体受10N力，加速度5m/s²。","第三定律：手推墙，墙也推手。"],"commonMistakes":["混淆作用力与反作用力和平衡力。","忽略加速度方向与合外力方向一致。","认为质量越大惯性越小。"]},
+  "数位(个位十位)": {"summary":"数位是数字中每个数字的位置，从右边起第一位是个位，第二位是十位。个位表示几个一，十位表示几个十。理解数位是学习加减法和位值的基础。","steps":["1. 认识个位和十位：从右边数起，第一位是个位，第二位是十位。","2. 用计数器或积木表示：个位放几个一，十位放几个十。","3. 练习读写两位数：如13表示1个十和3个一。","4. 比较数的大小：先看十位，十位大则数大；十位相同看个位。"],"examples":["例1：数字15，个位是5，十位是1。","例2：20表示2个十，个位是0。","例3：用计数器拨出12：十位拨1颗，个位拨2颗。"],"commonMistakes":["错误1：把十位和个位搞反，如把15说成51。","错误2：认为20的个位是2，实际上是0。","错误3：写数时漏写十位或个位，如把13写成3。"]},
+  "20以内加法(凑十法)": {"summary":"凑十法是把一个数拆开，和另一个数凑成10，再加剩下的数。例如8+5，把5拆成2和3，8+2=10，10+3=13。适用于20以内进位加法。","steps":["1. 看大数，拆小数：比如8+5，大数是8，凑十需要2，所以把5拆成2和3。","2. 凑十：8+2=10。","3. 加剩余：10+3=13。","4. 多练习，熟记凑十歌：一九一九好朋友，二八二八手拉手等。"],"examples":["例1：9+3=？ 9+1=10，3拆成1和2，10+2=12。","例2：7+6=？ 7+3=10，6拆成3和3，10+3=13。","例3：8+8=？ 8+2=10，8拆成2和6，10+6=16。"],"commonMistakes":["错误1：拆数错误，如8+5把5拆成3和2，但凑十需要2，却拆成1和4。","错误2：忘记加剩余的数，只算到10。","错误3：大数和小数混淆，不知道看哪个数凑十。"]},
+  "20以内减法(破十法)": {"summary":"破十法用于20以内退位减法，如15-7，把15拆成10和5，先用10-7=3，再3+5=8。核心是把大数拆成10和个位数，先减后加。","steps":["1. 看个位不够减：如15-7，个位5减7不够。","2. 拆大数：把15拆成10和5。","3. 用10减：10-7=3。","4. 加剩余：3+5=8。"],"examples":["例1：12-5=？ 12拆成10和2，10-5=5，5+2=7。","例2：16-8=？ 16拆成10和6，10-8=2，2+6=8。","例3：11-3=？ 11拆成10和1，10-3=7，7+1=8。"],"commonMistakes":["错误1：拆数后忘记加个位数，如15-7只算10-7=3，忘记加5。","错误2：个位够减时也用破十法，如13-2，直接减即可。","错误3：10减后加错，如16-8，10-8=2，再加6得8，误加为10。"]},
+  "比大小(><=)": {"summary":"比较两个数的大小，用大于号(>)、小于号(<)或等号(=)。规则：先看位数，位数多则大；位数相同从高位比。记忆口诀：开口朝大数，尖尖朝小数。","steps":["1. 比较位数：两位数大于一位数，如15>9。","2. 位数相同比十位：十位大的数大，如18>12。","3. 十位相同比个位：个位大的数大，如15<17。","4. 相等用等号：如12=12。"],"examples":["例1：比较13和9，13是两位数，9是一位数，13>9。","例2：比较15和18，十位都是1，个位5<8，所以15<18。","例3：比较20和20，相等，20=20。"],"commonMistakes":["错误1：混淆大于号和小于号，如把3>5写成3<5。","错误2：只看个位，如认为18>21（实际21>18）。","错误3：位数比较错误，如认为100<99（实际100>99）。"]},
+  "立体图形(积木类)": {"summary":"常见的立体图形有：长方体（6个面，相对面相同）、正方体（6个面都是正方形）、圆柱（上下两个圆，侧面曲面）、球（表面��滑，可滚动）。通过观察和触摸认识特征。","steps":["1. 观察实物：拿出积木，看形状，数面、边、顶点。","2. 分类：按形状分组，如长方体、正方体、圆柱、球。","3. 触摸感受：长方体有棱角，球圆滑，圆柱能滚动。","4. 游戏：搭积木，体会稳定性，如球难堆叠。"],"examples":["例1：魔方是正方体，每个面都是正方形。","例2：足球是球，可以滚动。","例3：水杯是圆柱，上下一样粗。"],"commonMistakes":["错误1：把长方体说成正方体，如认为长条积木是正方体。","错误2：混淆圆柱和球，认为圆柱也能像球一样任意滚动。","错误3：认为所有积木都是立体图形，忽略面特征。"]},
+  "乘法的初步认识": {"summary":"乘法是求几个相同加数和的简便运算。例如：3+3+3+3=12，用乘法表示为3×4=12。乘号读作“乘”，结果叫积。","steps":["理解乘法的意义：几个相同加数的和","认识乘号“×”，会读写乘法算式","将加法算式改写成乘法算式","通过实物或图形理解乘法","练习简单的乘法计算"],"examples":["5+5+5=15，写成乘法：5×3=15","有4个盘子，每个盘子2个苹果，一共几个苹果？2×4=8"],"commonMistakes":["混淆乘法和加法，如把3+3+3+3写成3×3","读错乘号，把“×”读成“叉”","忘记乘数顺序，但乘法交换律不影响结果"]},
+  "2-6的乘法口诀": {"summary":"2-6的乘法口诀是学习乘法的基础。如：一二得二，二二得四，二三得六……每句口诀对应两个乘法算式（除相同外）。","steps":["背诵2-6的乘法口诀表","理解口诀与乘法算式的对应关系","利用口诀快速计算乘法","通过游戏或卡片强化记忆","练习口诀的逆用（如已知积求因数）"],"examples":["计算3×4，口诀：三四十二，得12","6×5=30，口诀：五六三十"],"commonMistakes":["口诀记混，如“二三得六”与“三三得九”混淆","漏背或顺序错乱","只记口诀不会应用"]},
+  "部首查字法": {"summary":"部首查字法是利用汉字的部首查找字典的方法。先确定部首，再数部首笔画，在部首目录中找到该部首，然后数除去部首的笔画，在检字表中找到字。","steps":["确定汉字的部首","数部首的笔画数","在部首目录中找该部首及页码","翻到检字表，数除去部首后的笔画","在检字表中找到字并翻到正文页码"],"examples":["查“江”字：部首“氵”3画，除去部首3画，在检字表3画找到“江”","查“花”字：部首“艹”3画，除去部首4画，在检字表4画找到“花”"],"commonMistakes":["找错部首，如“水”不是部首","数错笔画，尤其注意笔顺","忽略部首的变形，如“氵”是“水”的变形"]},
+  "分数的初步认识": {"summary":"分数表示把一个整体平均分成若干份，取其中的一份或几份。如把蛋糕平均分成4份，取1份就是1/4。分数由分子、分数线、分母组成。","steps":["理解“平均分”的概念","认识分子、分母、分数线","会读写分数","通过图形或实物理解分数意义","比较同分母或同分子分数大小"],"examples":["把一个圆形平均分成8份，涂色3份，表示3/8","比较3/5和2/5的大小：3/5 > 2/5"],"commonMistakes":["忽略“平均分”，如分得不均匀","分子分母颠倒，如把3/4写成4/3","比较分数时只看数字大小"]},
+  "小数的意义和性质": {"summary":"小数是分数的另一种表示形式，如0.1表示1/10。小数的性质：末尾添0或去0大小不变。小数由整数部分、小数点和小数部分组成。","steps":["理解小数的意义：十分之几、百分之几等","掌握小数的数位顺序表","会读写小数","运用小数的性质化简或改写小数","比较小数大小"],"examples":["0.3表示3/10，0.05表示5/100","比较0.5和0.50：大小相等，但精确度不同"],"commonMistakes":["误以为小数末尾添0大小改变","读小数时读错数位，如0.25读作零点二十五","比较小数时只比较整数部分"]},
+  "集合(概念与运算)": {"summary":"集合是数学中基本概念，表示具有某种特定性质对象的全体。集合运算包括并、交、补等，是解决数学问题的基础工具。","steps":["理解集合定义：明确集合元素特性，如无序性、互异性。","掌握表示法：列举法、描述法。","学习基本运算：并集、交集、补集、差集。","练习文氏图辅助理解运算关系。","应用集合解决实际问题，如分类讨论。"],"examples":["设A={1,2,3}, B={2,3,4}，求A∪B和A∩B。","已知全集U={1,2,3,4,5}，A={2,3}，求补集∁UA。"],"commonMistakes":["忽略元素互异性，如重复元素未去重。","混淆并集与交集符号。","补集运算时未明确全集。"]},
+  "比的含义性质": {"summary":"比表示两个数相除的关系，比的前项除以后项得比值。比的基本性质：比的前项和后项同乘或同除以相同数（0除外），比值不变。","steps":["理解比的概念：a:b表示a÷b。","掌握比的读写和化简方法。","学习比的基本性质并用于化简比。","区分比、除法、分数之间的关系。","应用比解决实际问题，如按比例分配。"],"examples":["化简比12:18。","已知a:b=2:3，b:c=4:5，求a:b:c。"],"commonMistakes":["化简比时未化为最简整数比。","混淆比与比值（比值是数值）。","按比例分配时未正确设未知数。"]},
+  "圆的认识": {"summary":"圆是平面上到定点距离等于定长的所有点组成的图形。圆心、半径、直径是基本要素，直径是半径的2倍，圆有无数条对称轴。","steps":["认识圆的各部分名称：圆心、半径、直径。","掌握圆的特征：同圆中半径相等，直径是半径2倍。","学会用圆规画圆。","理解并应用圆的对称性。","掌握圆周率π的意义及圆周长、面积公式。"],"examples":["已知圆半径5cm，求直径和周长。","画一个半径为3cm的圆，标出圆心、半径。"],"commonMistakes":["混淆半径与直径关系。","计算周长时用直径代替半径。","忽略圆是轴对称图形。"]},
+  "比例的意义性质": {"summary":"比例表示两个比相等，即a:b=c:d。比例的基本性质：内项积等于外项积（ad=bc）。解比例时常用此性质。","steps":["理解比例定义：两个比相等。","掌握比例各部分名称：内项、外项。","学��比例基本性质并用于解比例。","区分比例与比。","应用比例解决实际问题，如按比例放大缩小。"],"examples":["解比例2:3=x:9。","判断4:6和8:12是否成比例。"],"commonMistakes":["解比例时交叉相乘错误。","混淆比例与比。","未化简比直接判断是否成比例。"]},
+  "导数概念": {"summary":"导数是函数在某点变化率的极限，表示函数在该点的瞬时变化率。导数的几何意义是曲线在该点切线的斜率。","steps":["理解导数的定义：f'(x0)=lim(Δx→0)[f(x0+Δx)-f(x0)]/Δx。","掌握基本初等函数导数公式。","学习导数的四则运算法则。","理解导数的几何意义：切线斜率。","应用导数判断函数单调性、求极值。"],"examples":["求函数f(x)=x²在x=2处的导数。","求曲线y=x³在点(1,1)处的切线方程。"],"commonMistakes":["混淆导数与函数值。","求导时忽略常数项导数为0。","复合函数求导时未使用链式法则。"]}
+};
+
+function showAIGuide() {
+  var key = currentView.detailKey;
+  if (!key) return;
+  var box = document.getElementById("mindmapBox");
+  var legend = document.getElementById("legendArea");
+  legend.style.display = "none";
+
+  var guide = LEARNING[key];
+  if (!guide) {
+    box.innerHTML = '<div class="empty-state"><div class="icon">🤖</div><h3>该知识点的 AI 讲解还在准备中</h3><p>暂时先看看导图里的"学什么"和"怎么做"吧～</p><button class="btn-back-detail" onclick="goBackFromGuide()">← 返回导图</button></div>';
+    return;
+  }
+
+  var h = '<div class="ai-guide-panel">';
+  h += '<div class="ai-guide-title">🤖 「' + key.replace(/</g,"&lt;") + '」 学习指南</div>';
+
+  if (guide.summary) {
+    h += '<div class="ai-guide-section"><h3>📖 概述</h3><p>' + guide.summary + '</p></div>';
+  }
+
+  if (guide.steps && guide.steps.length > 0) {
+    h += '<div class="ai-guide-section"><h3>📝 学习步骤</h3><ol>';
+    for (var i = 0; i < guide.steps.length; i++) {
+      h += '<li>' + guide.steps[i] + '</li>';
+    }
+    h += '</ol></div>';
+  }
+
+  if (guide.examples && guide.examples.length > 0) {
+    h += '<div class="ai-guide-section"><h3>💡 例题</h3>';
+    for (var j = 0; j < guide.examples.length; j++) {
+      h += '<div class="ai-example">' + guide.examples[j] + '</div>';
+    }
+    h += '</div>';
+  }
+
+  if (guide.commonMistakes && guide.commonMistakes.length > 0) {
+    h += '<div class="ai-guide-section"><h3>⚠️ 常见错误</h3><ul>';
+    for (var k = 0; k < guide.commonMistakes.length; k++) {
+      h += '<li>' + guide.commonMistakes[k] + '</li>';
+    }
+    h += '</ul></div>';
+  }
+
+  h += '<button class="btn-back-detail" onclick="goBackFromGuide()" style="margin-top:16px">← 返回导图</button>';
+  h += '</div>';
+  box.innerHTML = h;
+}
+
+function goBackFromGuide() {
+  if (currentView.detailKey) {
+    renderDetail(currentView.detailKey);
+  } else {
+    renderMindmap(currentView.grade, currentView.semester);
+  }
 }
 
 // 再来一局
